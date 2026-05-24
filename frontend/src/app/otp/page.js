@@ -7,14 +7,24 @@ import { api, saveToken } from '../../lib/api';
 export default function OTPPage() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
+  const [message, setMessage] = useState('');
   const router = useRouter();
 
   const sendOTP = async () => {
     try {
-      await api.post('/api/otp/send', { phone });
-      alert('OTP sent to your phone.');
+      const response = await api.post('/api/otp/send', { phone });
+      const otpValue = response.data.devOtp;
+      if (otpValue) {
+        alert(`Your OTP is ${otpValue}`);
+        setMessage(`OTP sent. Your code is ${otpValue}. Enter it below.`);
+      } else {
+        alert('OTP sent to your phone.');
+        setMessage('OTP sent. Enter it below.');
+      }
     } catch (error) {
-      alert('Unable to send OTP. Please try again.');
+      const errMsg = error?.response?.data?.message || error.message || 'Unable to send OTP. Please try again.';
+      alert(errMsg);
+      setMessage(errMsg);
     }
   };
 
@@ -98,6 +108,12 @@ export default function OTPPage() {
           <p className="mt-6 text-center text-sm font-medium text-emerald-700">
             Resend OTP in 00:28
           </p>
+
+          {message && (
+            <p className="mt-3 text-center text-sm font-semibold text-slate-700">
+              {message}
+            </p>
+          )}
 
           <div className="mt-auto">
             <button onClick={verifyOTP} className="primary-btn">

@@ -3,6 +3,7 @@ const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const fs = require('fs');
 const path = require('path');
 const { Server } = require('socket.io');
 
@@ -29,11 +30,16 @@ const io = new Server(server, {
   cors: corsOptions,
 });
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 app.set('io', io);
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadsDir));
 
 const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart-lost-found';
 console.log(`Connecting to MongoDB at ${mongoUri}`);
