@@ -26,13 +26,15 @@ export default function Home() {
 
     try {
       const response = await api.post('/api/otp/send', { phone, name });
-      if (response.data.devOtp) {
-        alert(`Your OTP is ${response.data.devOtp}`);
+      const otpValue = response.data.devOtp;
+      if (otpValue) {
+        alert(`Your OTP is ${otpValue}`);
+        setMessage(`OTP sent. Your code is ${otpValue}. Enter it below to continue.`);
       } else {
         alert('OTP sent to your mobile number.');
+        setMessage('OTP sent. Enter it below to continue.');
       }
       setOtpSent(true);
-      setMessage('OTP sent. Enter it below to continue.');
     } catch (error) {
       const errMsg = error?.response?.data?.message || error.message || 'Unable to send OTP. Please check your mobile number.';
       setMessage(errMsg);
