@@ -19,9 +19,11 @@ const sendLostItemStatusEmail = async ({ item, foundItem, status }) => {
 
   const serviceId = process.env.EMAILJS_SERVICE_ID;
   const templateId = process.env.EMAILJS_TEMPLATE_ID;
-  const userId = process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const userId = process.env.EMAILJS_USER_ID;
   const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
+  const effectiveUserId = publicKey || userId;
   const isFound = status === 'found';
   const subject = isFound
     ? `Your lost item was found: ${item.title}`
@@ -74,8 +76,8 @@ const sendLostItemStatusEmail = async ({ item, foundItem, status }) => {
     found_image_html: foundItem?.imageUrl ? `<img src="${foundItem.imageUrl}" alt="Found item" style="max-width:100%;height:auto;" />` : '',
   };
 
-  if (!serviceId || !templateId || !userId) {
-    console.error('EmailJS not sent. Configure EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY / EMAILJS_USER_ID.');
+  if (!serviceId || !templateId || !effectiveUserId) {
+    console.error('EmailJS not sent. Configure EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY or EMAILJS_USER_ID.');
     console.error({ to: item.ownerEmail, subject, templateParams });
     return { skipped: true, reason: 'EmailJS not configured' };
   }
@@ -83,14 +85,16 @@ const sendLostItemStatusEmail = async ({ item, foundItem, status }) => {
   const payload = {
     service_id: serviceId,
     template_id: templateId,
-    user_id: userId,
     template_params: templateParams,
+    user_id: effectiveUserId,
   };
+
   if (privateKey) {
     payload.accessToken = privateKey;
   }
 
-  console.log('Sending EmailJS message', { to: item.ownerEmail, subject });
+  const authMethods = [effectiveUserId ? 'user_id' : null, privateKey ? 'accessToken' : null].filter(Boolean);
+  console.log('Sending EmailJS message', { to: item.ownerEmail, subject, authMethods: authMethods.join(', ') });
   const response = await fetch(emailJsUrl, {
     method: 'POST',
     headers: {
@@ -101,6 +105,10 @@ const sendLostItemStatusEmail = async ({ item, foundItem, status }) => {
 
   if (!response.ok) {
     const body = await response.text();
+    const authMethods = [];
+    if (privateKey) authMethods.push('accessToken');
+    if (effectiveUserId) authMethods.push('user_id');
+    console.error('EmailJS payload auth methods:', authMethods.join(', '));
     console.error(`EmailJS failed: ${response.status} ${body}`);
     if (response.status === 403 && body.includes('non-browser environments')) {
       throw new Error('EmailJS API access from non-browser environments is disabled. Enable it in the EmailJS dashboard under Account > Security.');
