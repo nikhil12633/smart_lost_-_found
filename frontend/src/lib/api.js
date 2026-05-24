@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const getDefaultApiUrl = () => {
+  if (typeof window === 'undefined') return 'http://localhost:5000';
+  const { hostname, protocol, origin } = window.location;
+
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `${protocol}//${hostname}:5000`;
+  }
+
+  return `${origin}/api`;
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || getDefaultApiUrl();
 
 export const api = axios.create({
   baseURL: API_URL,

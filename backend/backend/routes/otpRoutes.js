@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const router = express.Router();
+const showOtpInResponse = process.env.OTP_DEBUG === 'true' || process.env.NODE_ENV !== 'production';
 
 const signToken = (user) => {
   return jwt.sign(
@@ -37,7 +38,7 @@ router.post('/send', async (req, res) => {
     console.log(`OTP for ${phone}: ${otp}`);
     res.json({
       message: 'OTP sent',
-      devOtp: process.env.NODE_ENV === 'production' ? undefined : otp,
+      devOtp: showOtpInResponse ? otp : undefined,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
