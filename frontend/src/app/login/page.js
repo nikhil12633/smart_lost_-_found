@@ -24,7 +24,9 @@ export default function Login() {
       }
       setMessage('OTP sent. Enter it below to continue.');
     } catch (error) {
-      setMessage('Unable to send OTP. Please check your mobile number.');
+      const errMsg = error?.response?.data?.message || error.message || 'Unable to send OTP. Please check your mobile number.';
+      setMessage(errMsg);
+      console.error('OTP send failed:', error);
     }
   };
 
@@ -34,7 +36,9 @@ export default function Login() {
       saveToken(response.data.token);
       router.push('/dashboard');
     } catch (error) {
-      setMessage('Invalid or expired OTP.');
+      const errMsg = error?.response?.data?.message || error.message || 'Invalid or expired OTP.';
+      setMessage(errMsg);
+      console.error('OTP verify failed:', error);
     }
   };
 
