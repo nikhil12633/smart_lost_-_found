@@ -36,10 +36,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart-lost-found';
+console.log(`Connecting to MongoDB at ${mongoUri}`);
 mongoose
   .connect(mongoUri)
   .then(() => console.log('MongoDB Connected'))
-  .catch((err) => console.log('MongoDB connection error:', err));
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    console.error('MongoDB is not connected. Please check your MONGO_URI and database status.');
+  });
 
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
@@ -62,3 +66,4 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server Running on Port ${PORT}`);
 });
+//hello

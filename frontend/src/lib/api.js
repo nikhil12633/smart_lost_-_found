@@ -2,13 +2,13 @@ import axios from 'axios';
 
 const getDefaultApiUrl = () => {
   if (typeof window === 'undefined') return 'http://localhost:5000';
-  const { hostname, protocol, port } = window.location;
+  const { hostname, protocol } = window.location;
 
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  if (process.env.NODE_ENV !== 'production') {
     return `${protocol}//${hostname}:5000`;
   }
 
-  return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+  return `${protocol}//${hostname}`;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || getDefaultApiUrl();
